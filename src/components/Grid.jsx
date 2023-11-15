@@ -5,9 +5,9 @@ const Blank = () => {
   return <BlankDiv></BlankDiv>;
 };
 
-const Balloon = ({ num }) => {
+const Balloon = ({ num, pos, splashBalloons }) => {
   return (
-    <BalloonDiv>
+    <BalloonDiv onClick={splashBalloons}>
       <p>{num}</p>
     </BalloonDiv>
   );
@@ -16,6 +16,10 @@ const Balloon = ({ num }) => {
 const Grid = ({ height, width }) => {
   const [realMap, setRealMap] = useState([]);
   const [balloons, setBalloons] = useState({});
+
+  const calc2dCoord = (i, j) => {
+    return (i - 1) * width + (j - 1);
+  };
 
   const find = (x, parent) => {
     if (parent[x] === x) return x;
@@ -93,19 +97,37 @@ const Grid = ({ height, width }) => {
     unionFind([...iRange].reverse(), jRange, balloonMap, parent);
     unionFind([...iRange].reverse(), [...jRange].reverse(), balloonMap, parent);
 
+    const _balloons = {};
+
+    iRange.forEach((i) => {
+      jRange.forEach((j) => {
+        const key = balloonMap[i][j];
+        if (!key) return;
+
+        if (!(key in _balloons)) {
+          _balloons[`${key}`] = [];
+        }
+        _balloons[`${key}`].push(calc2dCoord(i, j));
+      });
+    });
+
     setRealMap(
       balloonMap.slice(1, height + 1).map((a) => a.slice(1, width + 1)),
     );
+    setBalloons(_balloons);
   }, []);
 
   const cells = []
     .concat(...realMap)
-    .map((n) => (n ? <Balloon num={n} /> : <Blank />));
+    .map((n, index) =>
+      n ? <Balloon num={n} pos={index} key={index} /> : <Blank key={index} />,
+    );
 
   return (
     <>
       <GridMain height={height} width={width}>
         {cells}
+        {console.log(balloons)}
       </GridMain>
     </>
   );
