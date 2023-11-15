@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
+import redBalloonImg from '../assets/red_balloon.png';
 
 const Blank = () => {
   return <BlankDiv></BlankDiv>;
@@ -8,7 +9,8 @@ const Blank = () => {
 const Balloon = ({ num, pos, popBalloons }) => {
   return (
     <BalloonDiv onClick={() => popBalloons(num, pos)}>
-      <p>{num}</p>
+      {/* <p>{num}</p> */}
+      <BalloonImg alt={'red balloon'} src={redBalloonImg} />
     </BalloonDiv>
   );
 };
@@ -176,13 +178,31 @@ const BalloonDiv = styled.div`
   width: 100%;
   height: 100%;
   border: 1px solid;
+  cursor: pointer;
 `;
+const BalloonImg = styled.img`
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  padding: 5%;
+  margin: 0 auto;
+`;
+
+const gridWidth = 700;
+const gridHeight = 700;
+
 const GridMain = styled.div`
   display: grid;
-  width: 500px;
-  height: 500px;
-  grid-template-columns: repeat(${(props) => props.width}, 1fr);
-  grid-template-rows: repeat(${(props) => props.height}, 1fr);
+  width: ${gridWidth}px;
+  height: ${gridHeight}px;
+  grid-template-columns: repeat(
+    ${(props) => props.width},
+    ${(props) => gridWidth / props.width}px
+  );
+  grid-template-rows: repeat(
+    ${(props) => props.height},
+    ${(props) => gridHeight / props.height}px
+  );
 `;
 
 export default Grid;

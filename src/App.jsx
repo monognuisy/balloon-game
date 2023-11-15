@@ -22,7 +22,7 @@ function App() {
         onChange={(e) => setWidth(e.target.value)}
       />
       {/* <Grid height={height} width={width} /> */}
-      <Grid height={5} width={5} />
+      <Grid height={10} width={10} />
     </>
   );
 }
