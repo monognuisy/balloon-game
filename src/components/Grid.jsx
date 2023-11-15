@@ -5,9 +5,9 @@ const Blank = () => {
   return <BlankDiv></BlankDiv>;
 };
 
-const Balloon = ({ num, pos, splashBalloons }) => {
+const Balloon = ({ num, pos, popBalloons }) => {
   return (
-    <BalloonDiv onClick={splashBalloons}>
+    <BalloonDiv onClick={() => popBalloons(num, pos)}>
       <p>{num}</p>
     </BalloonDiv>
   );
@@ -18,7 +18,12 @@ const Grid = ({ height, width }) => {
   const [balloons, setBalloons] = useState({});
 
   const calc2dCoord = (i, j) => {
-    return (i - 1) * width + (j - 1);
+    return i * width + j;
+  };
+  const calc1dCoord = (i) => {
+    const quotient = Math.floor(i / width);
+    const remainder = i % width;
+    return [quotient, remainder];
   };
 
   const find = (x, parent) => {
@@ -61,6 +66,32 @@ const Grid = ({ height, width }) => {
     });
   };
 
+  const popBalloons = (num, pos) => {
+    const sortedNumberOfBalloons = Object.values(balloons)
+      .map((arr) => arr.length)
+      .toSorted((a, b) => b - a);
+
+    if (sortedNumberOfBalloons[0] !== balloons[`${num}`].length) {
+      console.log('fail');
+      return;
+    }
+
+    const newRealMap = [...realMap];
+    balloons[num].forEach((idx) => {
+      const [i, j] = calc1dCoord(idx);
+      newRealMap[i][j] = 0;
+    });
+
+    setRealMap(newRealMap);
+
+    const newBalloons = { ...balloons };
+    delete newBalloons[`${num}`];
+
+    setBalloons(newBalloons);
+
+    console.log('success');
+  };
+
   // create Balloon, Blank map
   useEffect(() => {
     const balloonMap = [
@@ -97,37 +128,40 @@ const Grid = ({ height, width }) => {
     unionFind([...iRange].reverse(), jRange, balloonMap, parent);
     unionFind([...iRange].reverse(), [...jRange].reverse(), balloonMap, parent);
 
-    const _balloons = {};
+    const newBalloons = {};
 
     iRange.forEach((i) => {
       jRange.forEach((j) => {
-        const key = balloonMap[i][j];
-        if (!key) return;
+        const num = balloonMap[i][j];
+        if (!num) return;
 
-        if (!(key in _balloons)) {
-          _balloons[`${key}`] = [];
+        if (!(num in newBalloons)) {
+          newBalloons[`${num}`] = [];
         }
-        _balloons[`${key}`].push(calc2dCoord(i, j));
+        newBalloons[`${num}`].push(calc2dCoord(i - 1, j - 1));
       });
     });
 
     setRealMap(
       balloonMap.slice(1, height + 1).map((a) => a.slice(1, width + 1)),
     );
-    setBalloons(_balloons);
+    setBalloons(newBalloons);
   }, []);
 
   const cells = []
     .concat(...realMap)
     .map((n, index) =>
-      n ? <Balloon num={n} pos={index} key={index} /> : <Blank key={index} />,
+      n ? (
+        <Balloon num={n} pos={index} popBalloons={popBalloons} key={index} />
+      ) : (
+        <Blank key={index} />
+      ),
     );
 
   return (
     <>
       <GridMain height={height} width={width}>
         {cells}
-        {console.log(balloons)}
       </GridMain>
     </>
   );
