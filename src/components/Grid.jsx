@@ -3,6 +3,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import redBalloonImg from '../assets/red_balloon.png';
 import { Link, useLocation } from 'react-router-dom';
 import { PopupStyle, transparentWrapper } from '../style/Style';
+import useUrlState from '@ahooksjs/use-url-state';
 
 const Blank = () => {
   return <BlankDiv></BlankDiv>;
@@ -28,6 +29,8 @@ export const Grid = () => {
   const [balloons, setBalloons] = useState({}); // collection of balloons. key is the representative of balloons.
   const [isFailed, setIsFailed] = useState(false);
   const [isWin, setIsWin] = useState(false);
+  const [state, setState] = useUrlState({ h: 5, w: 5, group: '' });
+  const [isFirstURI, setIsFirstURI] = useState(true);
 
   // Calculate 2d coordinate to 1d coordinate.
   const calc2dCoord = (i, j) => {
@@ -85,6 +88,33 @@ export const Grid = () => {
     });
   };
 
+  // Build collection of balloons.
+  // This collection has position(1d) of balloons for realMap.
+  const buildCollection = (iRange, jRange, balloonMap) => {
+    const newBalloons = {};
+    iRange.forEach((i) => {
+      jRange.forEach((j) => {
+        const num = balloonMap[i][j];
+        if (!num) return;
+
+        if (!(num in newBalloons)) {
+          newBalloons[`${num}`] = [];
+        }
+        newBalloons[`${num}`].push(calc2dCoord(i - 1, j - 1));
+      });
+    });
+
+    return newBalloons;
+  };
+
+  const encode = (arr) => {
+    return encodeURIComponent(JSON.stringify(arr));
+  };
+
+  const decode = (str) => {
+    return JSON.parse(decodeURIComponent(str));
+  };
+
   // Pop all adjacent balloons.
   // If selected group of balloons isn't the biggest, then setIsFailed(true).
   // If popped all balloons properly, then setIsWin(true).
@@ -116,12 +146,57 @@ export const Grid = () => {
     setBalloons(newBalloons);
     console.log('success');
 
+    setState({
+      ...state,
+      group: encode(newBalloons),
+    });
+
     if (Object.keys(newBalloons).length === 0) {
       setIsWin(true);
     }
   };
 
   useEffect(() => {
+    // Fetch from url only first time (= when refreshed).
+    // group query indicates collection of balloons.
+    if (isFirstURI && state?.group && state?.group !== '') {
+      const h = state?.h ? Number(state?.h) : 5;
+      const w = state?.w ? Number(state?.w) : 5;
+      const group = decode(state?.group);
+
+      // Create empty balloonMap with border.
+      const balloonMap = [
+        [...Array(w + 2).fill(0)],
+        ...Array(h)
+          .fill(0)
+          .map(() => [...Array(w + 2).fill(0)]),
+        [...Array(w + 2).fill(0)],
+      ];
+
+      // Fill in balloonMap with balloons' collection.
+      Object.keys(group).forEach((k) => {
+        group[k].forEach((pos) => {
+          const [i, j] = calc1dCoord(pos);
+          balloonMap[i + 1][j + 1] = Number(k);
+        });
+      });
+
+      // Slice out the border.
+      const newRealMap = balloonMap
+        .slice(1, height + 1)
+        .map((a) => a.slice(1, width + 1));
+      setRealMap(newRealMap);
+
+      setHeight(h);
+      setWidth(w);
+      setBalloons(group);
+
+      setIsFirstURI(false);
+      return;
+    }
+
+    // In-game (or came from start page) initialization.
+
     // Map with border. (to reduce checking out-of-bound index in union-find)
     // Border is same as 'blank'.
     const balloonMap = [
@@ -158,27 +233,21 @@ export const Grid = () => {
     unionFind([...iRange].reverse(), jRange, balloonMap, parent);
     unionFind([...iRange].reverse(), [...jRange].reverse(), balloonMap, parent);
 
-    const newBalloons = {};
-
-    // Build collection of balloons.
-    // This collection has position(1d) of balloons for realMap.
-    iRange.forEach((i) => {
-      jRange.forEach((j) => {
-        const num = balloonMap[i][j];
-        if (!num) return;
-
-        if (!(num in newBalloons)) {
-          newBalloons[`${num}`] = [];
-        }
-        newBalloons[`${num}`].push(calc2dCoord(i - 1, j - 1));
-      });
-    });
+    // Build collection.
+    const newBalloons = { ...buildCollection(iRange, jRange, balloonMap) };
 
     // Save without border. (height * width size)
-    setRealMap(
-      balloonMap.slice(1, height + 1).map((a) => a.slice(1, width + 1)),
-    );
+    const newRealMap = balloonMap
+      .slice(1, height + 1)
+      .map((a) => a.slice(1, width + 1));
+    setRealMap(newRealMap);
     setBalloons(newBalloons);
+
+    setState({
+      h: height,
+      w: width,
+      group: encode(newBalloons),
+    });
   }, [height, width]);
 
   // Build map of components from realMap.
