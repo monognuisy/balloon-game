@@ -11,12 +11,12 @@ const Blank = () => {
 const Balloon = ({ num, popBalloons }) => {
   return (
     <BalloonDiv onClick={() => popBalloons(num)}>
-      {/* <p>{num}</p> */}
       <BalloonImg alt={'red balloon'} src={redBalloonImg} />
     </BalloonDiv>
   );
 };
 
+// Main grid.
 export const Grid = () => {
   const location = useLocation();
   const h = location.state?.h;
@@ -24,29 +24,33 @@ export const Grid = () => {
 
   const [height, setHeight] = useState(h ? Number(h) : 5);
   const [width, setWidth] = useState(w ? Number(w) : 5);
-  const [realMap, setRealMap] = useState([]);
-  const [balloons, setBalloons] = useState({});
+  const [realMap, setRealMap] = useState([]); // map indicating balloons in grid.
+  const [balloons, setBalloons] = useState({}); // collection of balloons. key is the representative of balloons.
   const [isFailed, setIsFailed] = useState(false);
   const [isWin, setIsWin] = useState(false);
 
+  // Calculate 2d coordinate to 1d coordinate.
   const calc2dCoord = (i, j) => {
     return i * width + j;
   };
+  // Calculate 1d coordinate to 2d coordinate.
   const calc1dCoord = (i) => {
     const quotient = Math.floor(i / width);
     const remainder = i % width;
     return [quotient, remainder];
   };
 
+  // Find and set (path compression) parent node.
   const find = (x, parent) => {
     if (parent[x] === x) return x;
 
     const currentParent = find(parent[x], parent);
-    parent[x] = currentParent;
+    parent[x] = currentParent; // path compression
 
     return currentParent;
   };
 
+  // Merge two trees.
   const union = (a, b, parent) => {
     const rootA = find(a, parent);
     const rootB = find(b, parent);
@@ -55,6 +59,8 @@ export const Grid = () => {
     else parent[rootA] = rootB;
   };
 
+  // Apply union-find to group adjacent balloons.
+  // Scan 4-ways. (left, right, up, down)
   const unionFind = (iRange, jRange, balloonMap, parent) => {
     iRange.forEach((i) => {
       jRange.forEach((j) => {
@@ -73,12 +79,17 @@ export const Grid = () => {
           union(balloonMap[i][j + 1], balloonMap[i][j + 1], parent);
         }
 
+        // Also update balloonMap for faster union-find later.
         balloonMap[i][j] = parent[balloonMap[i][j]];
       });
     });
   };
 
+  // Pop all adjacent balloons.
+  // If selected group of balloons isn't the biggest, then setIsFailed(true).
+  // If popped all balloons properly, then setIsWin(true).
   const popBalloons = (num) => {
+    // Find size of the biggest balloons' group.
     const sortedNumberOfBalloons = Object.values(balloons)
       .map((arr) => arr.length)
       .toSorted((a, b) => b - a);
@@ -89,6 +100,7 @@ export const Grid = () => {
       return;
     }
 
+    // Mark popped balloons as blank.
     const newRealMap = [...realMap];
     balloons[num].forEach((idx) => {
       const [i, j] = calc1dCoord(idx);
@@ -97,6 +109,7 @@ export const Grid = () => {
 
     setRealMap(newRealMap);
 
+    // Delete selected balloons' group.
     const newBalloons = { ...balloons };
     delete newBalloons[`${num}`];
 
@@ -108,12 +121,9 @@ export const Grid = () => {
     }
   };
 
-  const showGuide = (num) => {
-    balloons[num].forEach((idx) => {});
-  };
-
-  // create Balloon, Blank map
   useEffect(() => {
+    // Map with border. (to reduce checking out-of-bound index in union-find)
+    // Border is same as 'blank'.
     const balloonMap = [
       [...Array(width + 2).fill(0)],
       ...Array(height)
@@ -121,9 +131,9 @@ export const Grid = () => {
         .map(() => [...Array(width + 2).fill(0)]),
       [...Array(width + 2).fill(0)],
     ];
-    const parent = [0];
+    const parent = [0]; // parent(representative) node of each balloons.
 
-    let k = 1;
+    let k = 1; // balloon number.
     for (let i = 1; i <= height; i++) {
       for (let j = 1; j <= width; j++) {
         const isBalloon = Math.random() > 0.5;
@@ -139,6 +149,7 @@ export const Grid = () => {
       }
     }
 
+    // Do union-find to groupify.
     const iRange = [...Array(height).keys()].map((i) => i + 1);
     const jRange = [...Array(width).keys()].map((i) => i + 1);
 
@@ -149,6 +160,8 @@ export const Grid = () => {
 
     const newBalloons = {};
 
+    // Build collection of balloons.
+    // This collection has position(1d) of balloons for realMap.
     iRange.forEach((i) => {
       jRange.forEach((j) => {
         const num = balloonMap[i][j];
@@ -161,12 +174,14 @@ export const Grid = () => {
       });
     });
 
+    // Save without border. (height * width size)
     setRealMap(
       balloonMap.slice(1, height + 1).map((a) => a.slice(1, width + 1)),
     );
     setBalloons(newBalloons);
   }, [height, width]);
 
+  // Build map of components from realMap.
   const cells = []
     .concat(...realMap)
     .map((n, index) =>
