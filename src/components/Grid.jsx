@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import redBalloonImg from '../assets/red_balloon.png';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { PopupStyle, transparentWrapper } from '../Theme';
 
 const Blank = () => {
@@ -17,9 +17,17 @@ const Balloon = ({ num, popBalloons }) => {
   );
 };
 
-export const Grid = ({ height, width, handleFailed }) => {
+export const Grid = () => {
+  const location = useLocation();
+  const h = location.state?.h;
+  const w = location.state?.w;
+
+  const [height, setHeight] = useState(h ? Number(h) : 5);
+  const [width, setWidth] = useState(w ? Number(w) : 5);
   const [realMap, setRealMap] = useState([]);
   const [balloons, setBalloons] = useState({});
+  const [isFailed, setIsFailed] = useState(false);
+  const [isWin, setIsWin] = useState(false);
 
   const calc2dCoord = (i, j) => {
     return i * width + j;
@@ -77,7 +85,7 @@ export const Grid = ({ height, width, handleFailed }) => {
 
     if (sortedNumberOfBalloons[0] !== balloons[`${num}`].length) {
       console.log('fail');
-      handleFailed(true);
+      setIsFailed(true);
       return;
     }
 
@@ -93,8 +101,11 @@ export const Grid = ({ height, width, handleFailed }) => {
     delete newBalloons[`${num}`];
 
     setBalloons(newBalloons);
-
     console.log('success');
+
+    if (Object.keys(newBalloons).length === 0) {
+      setIsWin(true);
+    }
   };
 
   const showGuide = (num) => {
@@ -110,7 +121,6 @@ export const Grid = ({ height, width, handleFailed }) => {
         .map(() => [...Array(width + 2).fill(0)]),
       [...Array(width + 2).fill(0)],
     ];
-
     const parent = [0];
 
     let k = 1;
@@ -155,7 +165,7 @@ export const Grid = ({ height, width, handleFailed }) => {
       balloonMap.slice(1, height + 1).map((a) => a.slice(1, width + 1)),
     );
     setBalloons(newBalloons);
-  }, []);
+  }, [height, width]);
 
   const cells = []
     .concat(...realMap)
@@ -172,24 +182,50 @@ export const Grid = ({ height, width, handleFailed }) => {
       <GridMain height={height} width={width}>
         {cells}
       </GridMain>
+      {isFailed ? <FailView handleFailed={setIsFailed} /> : <></>}
+      {isWin ? <SuccessView handleWin={setIsWin} /> : <></>}
     </>
   );
 };
 
-export const Failview = ({ handleFailed }) => {
+const PopupView = ({ title, message, handleFunc }) => {
   return (
     <>
       <FailWrapper>
         <FailPopup>
           <div>
-            <h1>실패😭</h1>
-            <p>이런! 잘못된 풍선을 터뜨렸네요.</p>
+            <h1>{title}</h1>
+            <p>{message}</p>
           </div>
-          <RetryButton onClick={() => handleFailed(false)} to="/">
+          <RetryButton onClick={() => handleFunc(false)} to="/">
             <h3>Retry</h3>
           </RetryButton>
         </FailPopup>
       </FailWrapper>
+    </>
+  );
+};
+
+const FailView = ({ handleFailed }) => {
+  return (
+    <>
+      <PopupView
+        title={`패배😭`}
+        message={`이런! 잘못된 풍선을 터뜨렸네요.`}
+        handleFunc={handleFailed}
+      />
+    </>
+  );
+};
+
+const SuccessView = ({ handleWin }) => {
+  return (
+    <>
+      <PopupView
+        title={`승리😃`}
+        message={`와우! 클리어 하셨습니다~🎉🎉`}
+        handleFunc={handleWin}
+      />
     </>
   );
 };

@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { ButtonStyle, PopupStyle, transparentWrapper } from '../Theme';
 
 export const Startview = () => {
-  const handleStart = () => {};
+  const [height, setHeight] = useState(5);
+  const [width, setWidth] = useState(5);
+
+  const handleOnChange = (e, refval) => {
+    refval.current = e.target.value;
+  };
+  // const handleStart = () => {
+  //   setHeight(height.current);
+  //   setWidth(width.current);
+  // };
 
   return (
     <>
@@ -22,10 +31,17 @@ export const Startview = () => {
       </div>
       <SettingWrapper>
         <InputWrapper>
-          <input placeholder="행 개수" />
-          <input placeholder="열 개수" />
+          <input
+            placeholder="행 개수"
+            onChange={(e) => setHeight(e.target.value)}
+          />
+          <input
+            placeholder="열 개수"
+            onChange={(e) => setWidth(e.target.value)}
+          />
         </InputWrapper>
-        <StartLink onClick={handleStart} to="/play">
+        {console.log(height, width)}
+        <StartLink to="/play" state={{ h: `${height}`, w: `${width}` }}>
           <h3>Game Start!</h3>
         </StartLink>
       </SettingWrapper>
