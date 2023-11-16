@@ -1,21 +1,27 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import './App.css';
 import { Grid } from './components/Grid';
 import { Startview } from './components/Ready';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Header from './components/Header';
+import { ThemeProvider } from 'styled-components';
+import GlobalStyle from './theme/GlobalStyle';
+import { darkTheme, lightTheme, theme } from './theme/Theme';
 
 function App() {
-  const [height, setHeight] = useState(5);
-  const [width, setWidth] = useState(5);
+  const [isDark, setIsDark] = useState(false);
 
   return (
     <>
+      <Header toggleTheme={setIsDark} />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Startview />}></Route>
-          <Route path="/play" element={<Grid />}></Route>
-        </Routes>
+        <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+          <GlobalStyle />
+          <Routes>
+            <Route path="/" element={<Startview />}></Route>
+            <Route path="/play" element={<Grid />}></Route>
+          </Routes>
+        </ThemeProvider>
       </BrowserRouter>
     </>
   );

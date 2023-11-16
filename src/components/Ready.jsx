@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { ButtonStyle } from '../Theme';
+import { ButtonStyle } from '../style/Style';
 
 export const Startview = () => {
   // height, width of grids

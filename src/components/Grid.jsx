@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import redBalloonImg from '../assets/red_balloon.png';
 import { Link, useLocation } from 'react-router-dom';
-import { PopupStyle, transparentWrapper } from '../Theme';
+import { PopupStyle, transparentWrapper } from '../style/Style';
 
 const Blank = () => {
   return <BlankDiv></BlankDiv>;
