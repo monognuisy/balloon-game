@@ -23,6 +23,10 @@ body {
   min-height: 100vh;
 }
 
+h1 {
+  font-size: 3rem;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

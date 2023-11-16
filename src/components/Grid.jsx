@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import redBalloonImg from '../assets/red_balloon.png';
+import { Link } from 'react-router-dom';
+import { PopupStyle, transparentWrapper } from '../Theme';
 
 const Blank = () => {
   return <BlankDiv></BlankDiv>;
@@ -180,10 +182,10 @@ export const Failview = ({ handleFailed }) => {
       <FailWrapper>
         <FailPopup>
           <div>
-            <h1>실패</h1>
-            <h3>Failed</h3>
+            <h1>실패😭</h1>
+            <p>이런! 잘못된 풍선을 터뜨렸네요.</p>
           </div>
-          <RetryButton onClick={() => handleFailed(false)}>
+          <RetryButton onClick={() => handleFailed(false)} to="/">
             <h3>Retry</h3>
           </RetryButton>
         </FailPopup>
@@ -229,43 +231,14 @@ const GridMain = styled.div`
 `;
 
 const FailWrapper = styled.div`
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(1, 1, 1, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  ${transparentWrapper}
 `;
 
 const FailPopup = styled.div`
-  width: 500px;
-  height: 300px;
-  background-color: #eeeeee;
-  color: #333333;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0 auto;
-  border-radius: 10px;
-  padding: 20px;
-  box-sizing: border-box;
-
-  > div {
-    margin-bottom: 0;
-    > h1 {
-      font-size: 4rem;
-      margin: 0;
-    }
-    > h3 {
-      font-size: 1.5rem;
-    }
-  }
+  ${PopupStyle}
 `;
 
-const RetryButton = styled.button`
+const RetryButton = styled(Link)`
   width: 30%;
   height: 50px;
   bottom: 0;
@@ -275,6 +248,16 @@ const RetryButton = styled.button`
   cursor: pointer;
   background-color: #242424;
   transition: all 0.3s;
+
+  color: #ffffff;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+
+  & > h3 {
+    margin: 0 auto;
+  }
 
   &:hover {
     background-color: #444444;
