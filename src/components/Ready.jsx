@@ -73,7 +73,7 @@ const SettingWrapper = styled.div`
   column-gap: 10px;
   align-items: center;
   border-radius: 10px;
-  border: 1px solid #444444;
+  border: 1px solid ${({ theme }) => theme.borderColor};
   padding: 10px;
   padding-left: 0;
 `;

@@ -1,5 +1,6 @@
 import { createGlobalStyle } from 'styled-components';
 import '../fonts/FontStyle.css';
+import { theme } from './Theme';
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -22,6 +23,12 @@ const GlobalStyle = createGlobalStyle`
     place-items: center;
     min-width: 320px;
     min-height: 100vh;
+  }
+
+  input {
+    background-color: ${({ theme }) => theme.backgroundColor};
+    border: 1px solid ${({ theme }) => theme.borderColor};
+    color: ${({ theme }) => theme.textColor};
   }
 
   h1 {
