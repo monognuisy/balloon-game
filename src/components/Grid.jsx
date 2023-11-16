@@ -6,16 +6,16 @@ const Blank = () => {
   return <BlankDiv></BlankDiv>;
 };
 
-const Balloon = ({ num, pos, popBalloons }) => {
+const Balloon = ({ num, popBalloons }) => {
   return (
-    <BalloonDiv onClick={() => popBalloons(num, pos)}>
+    <BalloonDiv onClick={() => popBalloons(num)}>
       {/* <p>{num}</p> */}
       <BalloonImg alt={'red balloon'} src={redBalloonImg} />
     </BalloonDiv>
   );
 };
 
-const Grid = ({ height, width }) => {
+export const Grid = ({ height, width, handleFailed }) => {
   const [realMap, setRealMap] = useState([]);
   const [balloons, setBalloons] = useState({});
 
@@ -68,13 +68,14 @@ const Grid = ({ height, width }) => {
     });
   };
 
-  const popBalloons = (num, pos) => {
+  const popBalloons = (num) => {
     const sortedNumberOfBalloons = Object.values(balloons)
       .map((arr) => arr.length)
       .toSorted((a, b) => b - a);
 
     if (sortedNumberOfBalloons[0] !== balloons[`${num}`].length) {
       console.log('fail');
+      handleFailed(true);
       return;
     }
 
@@ -92,6 +93,10 @@ const Grid = ({ height, width }) => {
     setBalloons(newBalloons);
 
     console.log('success');
+  };
+
+  const showGuide = (num) => {
+    balloons[num].forEach((idx) => {});
   };
 
   // create Balloon, Blank map
@@ -154,7 +159,7 @@ const Grid = ({ height, width }) => {
     .concat(...realMap)
     .map((n, index) =>
       n ? (
-        <Balloon num={n} pos={index} popBalloons={popBalloons} key={index} />
+        <Balloon num={n} popBalloons={popBalloons} key={index} />
       ) : (
         <Blank key={index} />
       ),
@@ -165,6 +170,24 @@ const Grid = ({ height, width }) => {
       <GridMain height={height} width={width}>
         {cells}
       </GridMain>
+    </>
+  );
+};
+
+export const Failview = ({ handleFailed }) => {
+  return (
+    <>
+      <FailWrapper>
+        <FailPopup>
+          <div>
+            <h1>실패</h1>
+            <h3>Failed</h3>
+          </div>
+          <RetryButton onClick={() => handleFailed(false)}>
+            <h3>Retry</h3>
+          </RetryButton>
+        </FailPopup>
+      </FailWrapper>
     </>
   );
 };
@@ -196,13 +219,64 @@ const GridMain = styled.div`
   width: ${gridWidth}px;
   height: ${gridHeight}px;
   grid-template-columns: repeat(
-    ${(props) => props.width},
-    ${(props) => gridWidth / props.width}px
+    ${({ width }) => width},
+    ${({ width }) => gridWidth / width}px
   );
   grid-template-rows: repeat(
-    ${(props) => props.height},
-    ${(props) => gridHeight / props.height}px
+    ${({ height }) => height},
+    ${({ height }) => gridHeight / height}px
   );
 `;
 
-export default Grid;
+const FailWrapper = styled.div`
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(1, 1, 1, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const FailPopup = styled.div`
+  width: 500px;
+  height: 300px;
+  background-color: #eeeeee;
+  color: #333333;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0 auto;
+  border-radius: 10px;
+  padding: 20px;
+  box-sizing: border-box;
+
+  > div {
+    margin-bottom: 0;
+    > h1 {
+      font-size: 4rem;
+      margin: 0;
+    }
+    > h3 {
+      font-size: 1.5rem;
+    }
+  }
+`;
+
+const RetryButton = styled.button`
+  width: 30%;
+  height: 50px;
+  bottom: 0;
+  border-radius: 10px;
+  border: 0;
+  margin: 0 auto;
+  cursor: pointer;
+  background-color: #242424;
+  transition: all 0.3s;
+
+  &:hover {
+    background-color: #444444;
+  }
+`;
